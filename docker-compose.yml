@@ -1,0 +1,55 @@
+version: '3.8'
+
+x-base: &base
+  restart: unless-stopped
+  env_file:
+    - .env
+
+
+services:
+  nginx:
+    <<: *base
+    image: nginx:1.25.3-alpine
+    volumes:
+      - nginx_logs:/var/log/nginx/
+      - ./nginx/config/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/config/conf.d:/etc/nginx/conf.d:ro
+    ports:
+      - 80:80
+
+  api:
+    <<: *base
+    build:
+      dockerfile: ./docker/Dockerfile
+      context: ./api
+      args:
+        DOCKER_BUILDKIT: 1
+        APP_DIR: ${APP_DIR}
+    expose:
+      - 8000
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://127.0.0.1:8000/api/v1/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 3
+    environment:
+      START_MODE: BACKEND
+    ports:
+      - 8000:8000
+    volumes:
+      - api_logs:/var/log/notifications/
+
+  rabbitmq:
+    <<: *base
+    image: rabbitmq:3.12.12-management-alpine
+    volumes:
+      - rabbit:/var/lib/rabbitmq
+    ports:
+      - 15672:15672
+      - 5672:5672
+
+volumes:
+  nginx_logs:
+  api_logs:
+  rabbit:
+
