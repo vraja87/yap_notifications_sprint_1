@@ -36,6 +36,9 @@ services:
       START_MODE: BACKEND
     ports:
       - 8000:8000
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
     volumes:
       - api_logs:/var/log/notifications/
 
@@ -44,6 +47,14 @@ services:
     image: rabbitmq:3.12.12-management-alpine
     volumes:
       - rabbit:/var/lib/rabbitmq
+    healthcheck:
+      test: rabbitmq-diagnostics -q status
+      interval: 5s
+      timeout: 2s
+      retries: 15
+    environment:
+      - RABBITMQ_DEFAULT_USER=${RABBITMQ_USER}
+      - RABBITMQ_DEFAULT_PASS=${RABBITMQ_PASSWORD}
     ports:
       - 15672:15672
       - 5672:5672

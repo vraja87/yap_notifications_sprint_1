@@ -1,14 +1,16 @@
 import os
 from pathlib import Path
 
-from pydantic import BaseSettings
+from pydantic import BaseSettings, Field
 
 env_path = Path("..") / ".env"
 env_file = env_path
 
 
 class Settings(BaseSettings):
-    project_name: str = "NOTIFICATIONS"
+    PROJECT_NAME: str = "NOTIFICATIONS"
+    PRODUCER_DSN: str = Field(env="RABBITMQ_URI")
+    QUEUE_NAME: str = Field("notice", env="QUEUE_NAME")
 
 
 class AuthjwtSettings(BaseSettings):
