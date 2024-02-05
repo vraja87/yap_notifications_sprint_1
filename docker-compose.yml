@@ -8,7 +8,8 @@ x-base: &base
 
 services:
   nginx:
-    <<: *base
+    <<:
+      - *base
     image: nginx:1.25.3-alpine
     volumes:
       - nginx_logs:/var/log/nginx/
@@ -18,7 +19,8 @@ services:
       - 80:80
 
   notify_db:
-    <<: *base
+    <<:
+      - *base
     image: "postgres:16.1-alpine3.19"
     volumes:
       - db_data:/var/lib/postgresql/data
@@ -35,13 +37,11 @@ services:
       retries: 30
 
   api:
-    <<: *base
+    <<:
+      - *base
     build:
-      dockerfile: ./docker/Dockerfile
       context: ./api
-      args:
-        DOCKER_BUILDKIT: 1
-        APP_DIR: ${APP_DIR}
+      dockerfile: ./docker/Dockerfile
     expose:
       - 8000
     healthcheck:
@@ -59,8 +59,16 @@ services:
     volumes:
       - api_logs:/var/log/notifications/
 
+  scheduler:
+    <<:
+      - *base
+    build:
+      context: ./scheduler
+      dockerfile: ./docker/Dockerfile
+
   rabbitmq:
-    <<: *base
+    <<:
+      - *base
     image: rabbitmq:3.12.12-management-alpine
     volumes:
       - rabbit:/var/lib/rabbitmq

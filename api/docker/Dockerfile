@@ -1,5 +1,5 @@
-ARG BUILD_IMAGE=3.11-buster
-ARG BASE_IMAGE=3.11-slim-buster
+ARG BUILD_IMAGE=3.11-bookworm
+ARG BASE_IMAGE=3.11-slim-bookworm
 
 # modules
 FROM python:${BUILD_IMAGE} AS modules
@@ -38,29 +38,20 @@ WORKDIR ${APP_DIR}
 COPY ./conf/gunicorn-asgi.conf.py /gunicorn-asgi.conf.py
 COPY ./docker/entrypoint.sh /entrypoint.sh
 
-RUN chmod +x '/entrypoint.sh' \
-  && groupadd -r web && useradd -r -g web web \
-  && chown web:web -R ${APP_DIR}
-
-USER web
 EXPOSE 8000
 ENTRYPOINT ["/entrypoint.sh"]
 
 ### prod build
 FROM base AS prod
-COPY --chown=web:web ./src ./
 RUN cd ./ && rm -rf tests
 
 ### tests stage
 FROM base AS tests
 
-USER root
-
-COPY --chown=web:web ./src ./
+COPY ./src ./
 
 COPY --from=test_modules /wheels_tests /wheels_tests
 RUN --mount=type=cache,target=/pkg_tests pip install -U pip \
        && pip install --no-index -r /wheels_tests/requirements.txt -f /pkg_tests \
        && rm -rf /wheels_tests \
        && rm -rf /root/.cache/pip/* \
-USER web
