@@ -17,6 +17,23 @@ services:
     ports:
       - 80:80
 
+  notify_db:
+    <<: *base
+    image: "postgres:16.1-alpine3.19"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=${NOTIFY_DB_NAME}
+      - POSTGRES_USER=${NOTIFY_DB_USER}
+      - POSTGRES_PASSWORD=${NOTIFY_DB_PASSWORD}
+    expose:
+      - 5432
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -d ${NOTIFY_DB_NAME} -U ${NOTIFY_DB_USER}" ]
+      interval: 1s
+      timeout: 1s
+      retries: 30
+
   api:
     <<: *base
     build:
@@ -63,4 +80,4 @@ volumes:
   nginx_logs:
   api_logs:
   rabbit:
-
+  db_data:
