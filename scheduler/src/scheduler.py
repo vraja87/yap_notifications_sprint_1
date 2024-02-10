@@ -1,12 +1,9 @@
 import asyncio
-
 from loguru import logger
 import asyncpg
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
-
 from config import db_params
-
 
 class CronTaskScheduler:
     def __init__(self):
@@ -14,12 +11,12 @@ class CronTaskScheduler:
         self.scheduler = AsyncIOScheduler()
 
     async def execute_task(self, task_id, task_name):
-        print(f"Executing task {task_name} with ID: {task_id}")
+        logger.info(f"Executing task {task_name} with ID: {task_id}")
         await asyncio.sleep(2)
-        print(f"End executing task {task_name} with ID: {task_id}")
+        logger.info(f"End executing task {task_name} with ID: {task_id}")
 
     async def fetch_cron_tasks(self) -> list:
-        print("Fetching cron tasks from database...")
+        logger.info("Fetching cron tasks from database...")
         tasks = []
 
         async with asyncpg.create_pool(**self.db_params) as pool:
@@ -37,17 +34,20 @@ class CronTaskScheduler:
             logger.info(f"Scheduling task {task_name} with cron expression: {cron_expression}")
 
             trigger = CronTrigger.from_crontab(cron_expression)
-            self.scheduler.add_job(func=self.execute_task, trigger=trigger, args=[task_id,
-                task_name], id=f"task_{task_id}")
+            self.scheduler.add_job(func=self.execute_task, trigger=trigger, args=[task_id, task_name], id=f"task_{task_id}")
 
     async def start_scheduler(self) -> None:
         logger.info("Starting scheduler.")
         try:
             await self.schedule_tasks()
             self.scheduler.start()
+
             while True:
                 await asyncio.sleep(1)
         except KeyboardInterrupt:
             logger.info("Scheduler stopped by the user.")
         except Exception as e:
             logger.exception("An error occurred in the scheduler.", exc_info=True)
+        finally:
+            # Stop the scheduler
+            self.scheduler.shutdown(wait=False)
