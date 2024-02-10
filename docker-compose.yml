@@ -62,6 +62,24 @@ services:
     volumes:
       - api_logs:/var/log/notifications/
 
+  mock-api:
+    <<:
+      - *base
+    build:
+      context: ./mock-api
+      dockerfile: ./docker/Dockerfile
+      args:
+        APP_DIR: ${APP_DIR}
+    expose:
+      - 8000
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://127.0.0.1:8000/api/v1/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 3
+    ports:
+      - 8001:8000
+
   scheduler:
     <<:
       - *base
