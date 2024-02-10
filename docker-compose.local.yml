@@ -2,5 +2,11 @@ version: '3.8'
 
 services:
   api:
+    ports:
+      - 8000:8000
     volumes:
       - "./api/src:${APP_DIR}"
+
+  scheduler:
+    volumes:
+      - "./scheduler/src:${APP_DIR}"
