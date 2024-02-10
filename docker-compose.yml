@@ -73,6 +73,8 @@ services:
     depends_on:
       notify_db:
         condition: service_healthy
+      api:
+        condition: service_started
 
   rabbitmq:
     <<:
