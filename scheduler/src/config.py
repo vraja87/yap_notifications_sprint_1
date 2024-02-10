@@ -6,6 +6,6 @@ class DBParams(BaseModel):
     password: str = 'notify'
     host: str = 'notify_db'
     port: str = '5432'
-    dbname: str = 'notify'
+    database: str = 'notify'
 
 db_params = DBParams()

@@ -1,8 +1,9 @@
-import logging
-import time
+import asyncio
 
-import psycopg
-from croniter import croniter
+from loguru import logger
+import asyncpg
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from apscheduler.triggers.cron import CronTrigger
 
 from config import db_params
 
@@ -10,40 +11,43 @@ from config import db_params
 class CronTaskScheduler:
     def __init__(self):
         self.db_params = db_params.dict()
-        self.last_update_time = None
+        self.scheduler = AsyncIOScheduler()
 
-    def execute_task(self, task_name):
-        pass
+    async def execute_task(self, task_id, task_name):
+        print(f"Executing task {task_name} with ID: {task_id}")
+        await asyncio.sleep(2)
+        print(f"End executing task {task_name} with ID: {task_id}")
 
-    def fetch_cron_tasks(self):
-        logging.error(self.db_params)
-        with psycopg.connect(**self.db_params) as conn:
-            with conn.cursor() as cursor:
+    async def fetch_cron_tasks(self) -> list:
+        print("Fetching cron tasks from database...")
+        tasks = []
 
-                if self.last_update_time:
-                    cursor.execute("SELECT id, task_name, cron_expression FROM cron_tasks WHERE last_update_time > %s", (
-                        self.last_update_time,))
-                else:
-                    cursor.execute("SELECT id, task_name, cron_expression FROM cron_tasks")
+        async with asyncpg.create_pool(**self.db_params) as pool:
+            async with pool.acquire() as conn:
+                tasks = await conn.fetch("SELECT id, task_name, cron_expression FROM schedule")
 
-                tasks = cursor.fetchall()
-                self.last_update_time = time.time()
-
+        logger.info(f"Found {len(tasks)} cron tasks.")
         return tasks
 
-    def run_tasks(self):
-        tasks = self.fetch_cron_tasks()
+    async def schedule_tasks(self) -> None:
+        tasks = await self.fetch_cron_tasks()
 
         for task in tasks:
-            logging.error(task)
             task_id, task_name, cron_expression = task
-            cron = croniter(cron_expression)
+            logger.info(f"Scheduling task {task_name} with cron expression: {cron_expression}")
 
-            # Run task if next execution time is less than current time
-            if cron.get_next() <= time.time():
-                self.execute_task(task_name)
+            trigger = CronTrigger.from_crontab(cron_expression)
+            self.scheduler.add_job(func=self.execute_task, trigger=trigger, args=[task_id,
+                task_name], id=f"task_{task_id}")
 
-    def start_scheduler(self):
-        while True:
-            self.run_tasks()
-            time.sleep(60)
+    async def start_scheduler(self) -> None:
+        logger.info("Starting scheduler.")
+        try:
+            await self.schedule_tasks()
+            self.scheduler.start()
+            while True:
+                await asyncio.sleep(1)
+        except KeyboardInterrupt:
+            logger.info("Scheduler stopped by the user.")
+        except Exception as e:
+            logger.exception("An error occurred in the scheduler.", exc_info=True)

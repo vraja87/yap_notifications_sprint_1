@@ -1,5 +1,7 @@
+import asyncio
+
 from scheduler import CronTaskScheduler
 
 if __name__ == "__main__":
     scheduler = CronTaskScheduler()
-    scheduler.start_scheduler()
+    asyncio.run(scheduler.start_scheduler())
