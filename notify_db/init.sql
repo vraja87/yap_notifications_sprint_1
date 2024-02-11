@@ -12,7 +12,8 @@ CREATE TABLE schedule
     name        VARCHAR(255) NOT NULL,
     cron_expression  VARCHAR(255) NOT NULL,
     last_update_time TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
-    template_id      INT REFERENCES templates (id) ON DELETE CASCADE
+    template_id      INT REFERENCES templates (id) ON DELETE CASCADE,
+    worker_names     VARCHAR(255)[] DEFAULT ARRAY['smtp']::VARCHAR(255)[]
 );
 
 CREATE TABLE events
@@ -34,7 +35,8 @@ VALUES (1, 'welcome_letter',
         '<!DOCTYPE html><html><head><title>Every Minute Task</title></head><body><h1>Task Running Every Minute</h1><p>Current Date and Time: {{ current_datetime }}</p></body></html>');
 
 
-INSERT INTO schedule (name, cron_expression, template_id)
-VALUES ('every_minute_task', '* * * * *', 3),
-       ('friday_17_00_task', '0 17 * * FRI', 2),
-       ('every_day_21_00_task', '0 21 * * *', 1);
+INSERT INTO schedule (name, cron_expression, template_id, worker_names)
+VALUES
+    ('every_minute_task', '* * * * *', 3, ARRAY['smtp']),
+    ('friday_17_00_task', '0 17 * * FRI', 2, ARRAY['smtp']),
+    ('every_day_21_00_task', '0 21 * * *', 1, ARRAY['smtp']);
