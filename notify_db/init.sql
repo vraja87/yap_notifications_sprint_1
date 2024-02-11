@@ -22,7 +22,9 @@ VALUES (1, 'welcome_letter',
        (2, 'summary_letter',
         '<!DOCTYPE html><html><head><title>Weekend Movie Summary</title></head><body><h1>Best Movies on This Weekend</h1><p>Here are the top movies you do not want to miss this weekend: {{ movie_list }}</p></body></html>'),
        (3, 'test_letter',
-        '<!DOCTYPE html><html><head><title>Every Minute Task</title></head><body><h1>Task Running Every Minute</h1><p>Current Date and Time: {{ current_datetime }}</p></body></html>');
+        '<!DOCTYPE html><html><head><title>Every Minute Task</title></head><body><h1>Task Running Every Minute</h1><p>Current Date and Time: {{ current_datetime }}</p></body></html>'),
+       (4, 'likes_summary_letter',
+        '<!DOCTYPE html><html><head><title>Likes Notification</title></head><body><h1>Hi {{ username }}!</h1><p>You have received {{ new_likes }} new likes!<br>Awesome.</p></body></html>');
 
 
 INSERT INTO schedule (task_name, cron_expression, template_id)
