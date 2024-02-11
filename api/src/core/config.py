@@ -11,15 +11,12 @@ class Settings(BaseSettings):
     PROJECT_NAME: str = "NOTIFICATIONS"
     PRODUCER_DSN: str = Field(env="RABBITMQ_URI")
     QUEUE_NAME: str = Field("notice", env="QUEUE_NAME")
+    IMMEDIATE_QUEUE_NAME: str = Field("notice", env="IMMEDIATE_QUEUE_NAME")
 
+    service_token: str = os.getenv("SERVICE_TOKEN")
 
-class AuthjwtSettings(BaseSettings):
-    authjwt_secret_key: str = os.getenv("AUTHJWT_SECRET_KEY", "secret")
-    authjwt_token_location: set = {"cookies"}
-    authjwt_refresh_cookie_key = "refresh_token"
-    authjwt_access_cookie_key = "access_token"
-    authjwt_access_token_expires: int = 3600  # seconds
-    authjwt_cookie_csrf_protect: bool = False
+    redis_host: str = os.getenv("CACHE_HOST")
+    redis_port: int = os.getenv("CACHE_PORT")
 
 
 settings = Settings()

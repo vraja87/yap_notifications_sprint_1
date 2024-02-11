@@ -10,3 +10,7 @@ services:
   scheduler:
     volumes:
       - "./scheduler/src:${APP_DIR}"
+
+  notify_db:
+    ports:
+      - 5432:5432
