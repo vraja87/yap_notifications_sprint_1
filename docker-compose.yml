@@ -124,6 +124,27 @@ services:
     ports:
       - 6379:6379
 
+  worker:
+    <<:
+      - *base
+    build:
+      context: ./worker
+      dockerfile: ./Dockerfile
+    ports:
+      - "8080:8080"
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      notify_db:
+        condition: service_healthy
+      mock-api:
+        condition: service_started
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8080/healthcheck" ]
+      interval: 5s
+      timeout: 2s
+      retries: 15
+
 volumes:
   nginx_logs:
   api_logs:

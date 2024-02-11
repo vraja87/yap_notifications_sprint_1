@@ -1,0 +1,84 @@
+name: Python application
+
+on:
+#  push:
+#    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  flake_check:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.10', '3.11']
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install wemake-python-styleguide dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install flake8 wemake-python-styleguide
+      - name: Lint with wemake-python-styleguide
+        run: |
+          flake8 .
+
+  mypy_checks:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.10', '3.11']
+        include:
+          - service: api
+            requirements: api/conf/requirements.txt
+          - service: worker
+            requirements: worker/requirements.txt
+          - service: scheduler
+            requirements: scheduler/conf/requirements.txt
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install mypy
+          pip install -r ${{ matrix.requirements }}
+      - name: Run mypy
+        run: |
+          mypy ${{ matrix.service }} --config-file pyproject.toml
+
+  send_message:
+    runs-on: ubuntu-latest
+    needs: [flake_check, mypy_checks]
+    steps:
+      - name: if success
+        if: ${{ success() }}
+        uses: appleboy/telegram-action@v0.1.1
+        with:
+          to: ${{ secrets.TELEGRAM_TO }}
+          token: ${{ secrets.TELEGRAM_TOKEN }}
+          message: |
+            Success checks. ${{ github.workflow }}.
+            Repository: ${{ github.repository }}
+            From: ${{ github.actor }}
+            
+            See changes: https://github.com/${{ github.repository }}/commit/${{github.sha}}
+
+      - name: if failure
+        if: ${{ failure() }}
+        uses: appleboy/telegram-action@v0.1.1
+        with:
+          to: ${{ secrets.TELEGRAM_TO }}
+          token: ${{ secrets.TELEGRAM_TOKEN }}
+          message: |
+            Fail checks. ${{ github.workflow }}.
+            Repository: ${{ github.repository }}
+            From: ${{ github.actor }}
+            
+            See changes: https://github.com/${{ github.repository }}/commit/${{github.sha}}
