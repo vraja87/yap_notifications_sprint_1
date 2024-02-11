@@ -33,7 +33,7 @@ async def processor_with_templating(message_data):
     else:
         raise Exception(f"Unknown template name: {template.template_name}")
     rendered_content = Template(template.template_content).render(context)
-    message_data["email_text"] = rendered_content
+    message_data["email_body"] = rendered_content
     return await process_email_simple(message_data)
 
 
@@ -42,14 +42,14 @@ async def process_email_simple(message_data):
 
     если вдруг не указан subject, парсим и подставляем title"""
     if 'subject' not in message_data:
-        subject = extract_title(message_data["email_text"])
+        subject = extract_title(message_data["email_body"])
     else:
         subject = message_data["subject"]
 
     user_notification = {
         "contact": message_data["email"],
         "subject": subject,
-        "content": message_data["email_text"]
+        "content": message_data["email_body"]
     }
     mail = MailNotification(user_notification)
     mail.prepare_message()
@@ -69,7 +69,7 @@ async def one_processor_to_rule_them_all(message: aio_pika.IncomingMessage, rabb
         message_data = json.loads(message.body)
 
         try:
-            if "template_id" in message_data:
+            if "template_id" in message_data and message_data["template_id"]:
                 await processor_with_templating(message_data)
             else:
                 await process_email_simple(message_data)

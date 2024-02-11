@@ -23,7 +23,7 @@ class PostgresConnector:
         return await self.connection.fetch(query, *params)
 
     async def close(self):
-        """Закрывает соединение с базой данных."""
+        """Закрывает соединение с базой."""
         if self.connection:
             await self.connection.close()
             logger.info("DB connection closed.")
