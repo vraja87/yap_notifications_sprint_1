@@ -1,22 +1,20 @@
 import logging
 import json
 
+from typing import Type
+
 from fastapi.encoders import jsonable_encoder
-from aio_pika import Message, connect
-
-from core.config import settings
+from aio_pika import Message, connect_robust
 
 
-class RabbitMQ:
+class QueueProducer:
     def __init__(self, dsn):
-        logging.error(settings.PRODUCER_DSN)
         self.dsn = dsn
         self.connection = None
-        self.queue = None
 
-    # @backoff.on_exception(backoff.expo, AMQPConnectionError, max_time=60, raise_on_giveup=True)
     async def connect_broker(self) -> None:
-        self.connection = await connect(self.dsn)
+        self.connection = await connect_robust(self.dsn)
+        self.channel = await self.connection.channel()
         logging.info("Connected to %s", self.dsn)
 
     async def close(self):
@@ -26,19 +24,48 @@ class RabbitMQ:
             logging.error("Error closing connection")
             raise e
 
-    async def create_queue(self, ):
-        async with self.connection.channel() as channel:
-            self.queue = await channel.declare_queue(settings.QUEUE_NAME, durable=True, arguments={"x-max-priority":10})
-            logging.info("Queue '%s' created", self.queue.name)
-
-    async def publish(self, message: dict) -> str:
-        await self.connect_broker()
+    async def publish(self, message: dict, routing_key) -> str:
         encoded_message = jsonable_encoder(message)
-        if not self.queue:
-            await self.create_queue()
-        async with self.connection.channel() as channel:
-            await channel.default_exchange.publish(Message(body=json.dumps(encoded_message).encode('utf-8')), routing_key=self.queue.name)
+        await self.channel.default_exchange.publish(
+            Message(body=json.dumps(encoded_message).encode('utf-8')),
+            routing_key=routing_key)
         return 'ok'
 
 
-producer = RabbitMQ(settings.PRODUCER_DSN)
+class QueueProducerImmediate:
+    def __init__(self, dsn):
+        self.dsn = dsn
+        self.connection = None
+
+    async def connect_broker(self) -> None:
+        self.connection = await connect_robust(self.dsn)
+        self.channel = await self.connection.channel()
+        logging.info("Connected to %s", self.dsn)
+
+    async def close(self):
+        try:
+            await self.connection.close()
+        except Exception as e:
+            logging.error("Error closing connection")
+            raise e
+
+    async def publish(self, message: dict, routing_key) -> str:
+        await self.connect_broker()
+        encoded_message = jsonable_encoder(message)
+        await self.channel.default_exchange.publish(
+            Message(body=json.dumps(encoded_message).encode('utf-8')),
+            routing_key=routing_key)
+        await self.close()
+        return 'ok'
+
+
+queue_producer = QueueProducer
+queue_producer_immediate = QueueProducer
+
+
+async def get_producer() -> Type[QueueProducer]:
+    return queue_producer
+
+
+async def get_producer_immediate() -> Type[QueueProducerImmediate]:
+    return queue_producer_immediate

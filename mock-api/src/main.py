@@ -1,9 +1,14 @@
 import random
+import math
+
+from typing import List, Annotated
+
+from pydantic import BaseModel
 
 from datetime import datetime
 from uuid import UUID
 
-from fastapi import FastAPI, Request, Depends
+from fastapi import FastAPI, Query
 from fastapi.responses import ORJSONResponse
 
 from core.config import settings
@@ -29,7 +34,7 @@ def paginate(items: list, page: int = 1) -> list[dict]:
         "total": len(result),
         "page": page,
         "size": 50,
-        "pages": len(items)//50+1 - 1 + int(bool(50 % 49))
+        "pages": len(items)//50+1 - 1 + int(bool(len(items) % 50))
     }
 
 
@@ -61,6 +66,9 @@ async def auth_users(page: int = 1):
 
 
 @app.get("/auth/v1/users/users_by_group")
-async def auth_users_by_group(group_id: UUID):
-    return paginate([i["id"] for i in random.choices(
-        users, k=random.randrange(0, 50))])
+async def auth_users_by_group(
+    group_id: Annotated[list[UUID] | None, Query()],
+    page: int = 1
+):
+    return paginate(random.choices(
+        users, k=math.trunc(0.3*len(users))))

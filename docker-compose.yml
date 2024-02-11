@@ -52,8 +52,8 @@ services:
       interval: 5s
       timeout: 3s
       retries: 3
-    environment:
-      START_MODE: BACKEND
+    ports:
+      - 8000:8000
     depends_on:
       rabbitmq:
         condition: service_healthy
@@ -111,8 +111,22 @@ services:
       - 15672:15672
       - 5672:5672
 
+  redis:
+    <<: *base
+    image: redis:7.2.4-alpine
+    healthcheck:
+      test: [ "CMD", "redis-cli", "--raw", "incr", "ping" ]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    volumes:
+      - redis_data:/data
+    ports:
+      - 6379:6379
+
 volumes:
   nginx_logs:
   api_logs:
   rabbit:
   db_data:
+  redis_data:
