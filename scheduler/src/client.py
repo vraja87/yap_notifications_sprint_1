@@ -27,8 +27,6 @@ class NotifyAPIClient:
             "worker_names": worker_names,
         }
 
-        logger.info(data)
-
         async with httpx.AsyncClient() as client:
             logger.error(self.notify)
             response = await client.post(self.notify, json=data)
