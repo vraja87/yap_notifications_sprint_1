@@ -16,16 +16,18 @@ class NotifyAPIClient:
         template_id: int,
         group_id: List[int] = None,
         worker_names: List[str] = None,
-        users_id: List[int] = None,
+        user_id: List[int] = None,
     ) -> None:
 
         data = {
             "template_id": template_id,
             "group_id": group_id,
             "newsletter_id": newsletter_id,
-            "users_id": users_id,
+            "user_id": user_id,
             "worker_names": worker_names,
         }
+
+        logger.info(data)
 
         async with httpx.AsyncClient() as client:
             logger.error(self.notify)

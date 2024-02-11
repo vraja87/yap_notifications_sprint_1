@@ -15,7 +15,7 @@ class CronTaskScheduler:
         self.scheduler = AsyncIOScheduler()
         self.api_client = NotifyAPIClient()
 
-    async def execute_task(self, schedule_id, schedule_name, template_id):
+    async def execute_task(self, schedule_id, schedule_name, template_id, worker_names):
         logger.info(f"Executing task {schedule_name} with ID: {schedule_id}")
 
         event_id = await self.create_event(schedule_id)
@@ -23,9 +23,9 @@ class CronTaskScheduler:
         await self.api_client.send_schedule_data(
             template_id=template_id,
             group_id=[1, 2, 3],
-            newsletter_id=123,
-            users_id=[456, 789],
-            worker_names=["worker1", "worker2"],
+            newsletter_id=event_id,
+            user_id=[456, 789],
+            worker_names=worker_names,
         )
         logger.info(f"End executing task {schedule_name}. Stored event_id: {event_id}")
 
@@ -46,7 +46,7 @@ class CronTaskScheduler:
 
         async with asyncpg.create_pool(**self.db_params) as pool:
             async with pool.acquire() as conn:
-                tasks = await conn.fetch("SELECT id, name, cron_expression, template_id FROM schedule")
+                tasks = await conn.fetch("SELECT id, name, cron_expression, template_id, worker_names FROM schedule")
 
         logger.info(f"Found {len(tasks)} cron tasks.")
         return tasks
@@ -55,11 +55,11 @@ class CronTaskScheduler:
         tasks = await self.fetch_cron_tasks()
 
         for task in tasks:
-            schedule_id, schedule_name, cron_expression, template_id = task
+            schedule_id, schedule_name, cron_expression, template_id, worker_names = task
             logger.info(f"Scheduling task {schedule_name} with cron expression: {cron_expression}")
             trigger = CronTrigger.from_crontab(cron_expression)
             self.scheduler.add_job(
-                func=self.execute_task, trigger=trigger, args=[schedule_id, schedule_name, template_id]
+                func=self.execute_task, trigger=trigger, args=[schedule_id, schedule_name, template_id, worker_names]
             )
 
     async def start_scheduler(self) -> None:
