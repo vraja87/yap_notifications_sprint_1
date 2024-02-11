@@ -28,12 +28,13 @@ class MailNotification(AbstractNotification):
 
     @backoff.on_exception(backoff.expo, aiosmtplib.SMTPException, max_tries=3)
     async def send(self):
-        await aiosmtplib.send(
-            self.message,
-            hostname=config_mail.host,
-            port=config_mail.port,
-            use_tls=True,
-            username=config_mail.login,
-            password=config_mail.password
-        )
+        if config_mail.real_send:
+            await aiosmtplib.send(
+                self.message,
+                hostname=config_mail.host,
+                port=config_mail.port,
+                use_tls=True,
+                username=config_mail.login,
+                password=config_mail.password
+            )
         logger.info(f'Mail sent to {self.user_notification["contact"]}')

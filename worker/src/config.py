@@ -37,10 +37,12 @@ class SmtpMail(BaseSettings):
 
     domain: str = "yandex.ru"
     host: str = "smtp.yandex.ru"
-    port: str = 465
+    port: int = 465
 
     login: str = "admin"
     password: str = "admin"
+
+    real_send: bool = False
 
 
 class NotifyDbSettings(BaseSettings):
