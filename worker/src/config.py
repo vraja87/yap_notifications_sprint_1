@@ -37,7 +37,7 @@ class SmtpMail(BaseSettings):
 
     domain: str = "yandex.ru"
     host: str = "smtp.yandex.ru"
-    port: str = 465
+    port: str = "465"
 
     login: str = "admin"
     password: str = "admin"
