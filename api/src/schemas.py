@@ -7,7 +7,7 @@ from pydantic import BaseModel, EmailStr
 
 class Message(BaseModel):
     template_id: UUID | NoneType
-    group_id: List[UUID] | NoneType
+    group_id: List[str] | NoneType
     newsletter_id: UUID
     users_id: List[UUID] | NoneType
     worker_names: List[str]

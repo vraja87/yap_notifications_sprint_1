@@ -1,20 +1,15 @@
 import random
-import math
-
-from typing import List, Annotated
-
-from pydantic import BaseModel
-
+from typing import Annotated
 from datetime import datetime
 from uuid import UUID
 
+import math
 from fastapi import FastAPI, Query
 from fastapi.responses import ORJSONResponse
 
 from core.config import settings
 from middleware import AuthMiddleware
-
-from mock_data import users, films
+from mock_data import films, users
 
 app = FastAPI(
     title=settings.project_name,
@@ -28,19 +23,18 @@ app.middleware("http")(auth_middleware)
 
 
 def paginate(items: list, page: int = 1) -> list[dict]:
-    result = items[(page-1)*50:page*50]
+    result = items[(page - 1) * 50 : page * 50]
     return {
         "items": result,
         "total": len(result),
         "page": page,
         "size": 50,
-        "pages": len(items)//50+1 - 1 + int(bool(len(items) % 50))
+        "pages": len(items) // 50 + 1 - 1 + int(bool(len(items) % 50)),
     }
 
 
 @app.get("/api/v1/health")
-async def healthcheck(
-):
+async def healthcheck():
     return {"status": "ok"}
 
 
@@ -55,8 +49,7 @@ async def ugc_summary(user_id: UUID, since: datetime):
 # MOCK API FOR CONTENT
 @app.get("/content/v1/summary")
 async def content_summary(user_id: UUID):
-    return random.choices(
-        films, k=random.randrange(1, 10))
+    return random.choices(films, k=random.randrange(1, 10))
 
 
 # MOCK API FOR AUTH
@@ -66,9 +59,5 @@ async def auth_users(page: int = 1):
 
 
 @app.get("/auth/v1/users/users_by_group")
-async def auth_users_by_group(
-    group_id: Annotated[list[UUID] | None, Query()],
-    page: int = 1
-):
-    return paginate(random.choices(
-        users, k=math.trunc(0.3*len(users))))
+async def auth_users_by_group(group_id: Annotated[list[str] | None, Query()], page: int = 1):
+    return paginate(random.choices(users, k=math.trunc(0.3 * len(users))))

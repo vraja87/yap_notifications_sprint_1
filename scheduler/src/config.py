@@ -4,11 +4,11 @@ from pydantic import BaseModel
 
 
 class DBParams(BaseModel):
-    user: str = "notify"
-    password: str = "notify"
-    host: str = "notify_db"
-    port: str = "5432"
-    database: str = "notify"
+    user: str = os.getenv("NOTIFY_DB_USER")
+    password: str = os.getenv("NOTIFY_DB_PASSWORD")
+    host: str = os.getenv("NOTIFY_DB_HOST")
+    port: str = os.getenv("NOTIFY_DB_PORT")
+    database: str = os.getenv("NOTIFY_DB_NAME")
 
 
 class NotifyAPI(BaseModel):

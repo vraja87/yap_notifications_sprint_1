@@ -1,3 +1,5 @@
+import json
+import uuid
 from typing import List
 
 from loguru import logger
@@ -12,19 +14,25 @@ class NotifyAPIClient:
 
     async def send_schedule_data(
         self,
-        newsletter_id: int,
-        template_id: int,
-        group_id: List[int] = None,
+        newsletter_id: uuid.UUID,
+        template_id: uuid.UUID,
+        group_id: List[str] = None,
         worker_names: List[str] = None,
-        user_id: List[int] = None,
+        user_id: List[uuid.UUID] = None,
     ) -> None:
+        uuid_str_list = [str(u_uuid) for u_uuid in user_id]
+        json_uuid_list = json.dumps(uuid_str_list)
 
         data = {
-            "template_id": template_id,
-            "group_id": group_id,
-            "newsletter_id": newsletter_id,
-            "user_id": user_id,
-            "worker_names": worker_names,
+            "messages": [
+                {
+                    "template_id": str(template_id),
+                    "group_id": group_id,
+                    "newsletter_id": str(newsletter_id),
+                    "user_id": json_uuid_list,
+                    "worker_names": worker_names,
+                }
+            ]
         }
 
         async with httpx.AsyncClient() as client:
