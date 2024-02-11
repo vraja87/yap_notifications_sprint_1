@@ -1,6 +1,6 @@
 # Проектная работа 10 спринта
 
-Проектные работы в этом модуле в команде. Задания на спринт вы найдёте внутри тем.
+https://github.com/kamartem/notifications_sprint_1
 
 Для работы с mock апи надо будет указывать следующие заголовки: headers={'Cookie': f'access_token={os.environ['SERVICE_TOKEN']}; HttpOnly; Path=/', "X-Request-Id": "123"}
 
