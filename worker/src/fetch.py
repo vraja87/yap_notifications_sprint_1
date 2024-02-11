@@ -39,7 +39,7 @@ async def fetch_content_summary(user_id: str) -> ContentSummary:
 
 
 @logger.catch
-async def fetch_template_by_id(template_id: int) -> TemplateModel:
+async def fetch_template_by_id(template_id: str) -> TemplateModel:
     connector = PostgresConnector(dsn=config_notify_db.dsn)
     await connector.connect()
 
