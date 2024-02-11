@@ -20,7 +20,9 @@ class NotifyAPIClient:
         worker_names: List[str] = None,
         user_id: List[uuid.UUID] = None,
     ) -> None:
-        uuid_str_list = [str(u_uuid) for u_uuid in user_id]
+        uuid_str_list = None
+        if user_id:
+            uuid_str_list = [str(u_uuid) for u_uuid in user_id]
         json_uuid_list = json.dumps(uuid_str_list)
 
         data = {

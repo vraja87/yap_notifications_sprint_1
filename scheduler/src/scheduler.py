@@ -20,11 +20,15 @@ class CronTaskScheduler:
 
         event_id = await self.create_event(schedule_id)
 
+        #  TODO: we can store extra group_id or user_id in database for notification
+        group_id = None
+        user_id = None
+
         await self.api_client.send_schedule_data(
             template_id=template_id,
-            group_id=[1, 2, 3],
+            group_id=group_id,
             newsletter_id=event_id,
-            user_id=[456, 789],
+            user_id=user_id,
             worker_names=worker_names,
         )
         logger.info(f"End executing task {schedule_name}. Stored event_id: {event_id}")
