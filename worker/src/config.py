@@ -57,8 +57,15 @@ class NotifyDbSettings(BaseSettings):
     dsn: str = f"postgresql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}"
 
 
+class Auth(BaseSettings):
+    model_config = SettingsConfigDict(env_file=env_file, env_prefix="AUTH_")
+
+    api_url: str = "http://mock-api:8000"
+
+
 config_rabbit = RabbitMQ()
 config_mail = SmtpMail()
 config_notify_db = NotifyDbSettings()
 settings = Settings()
 conf_service = Service()
+config_auth = Auth()

@@ -3,14 +3,14 @@ from http import HTTPStatus
 
 import aiohttp
 from loguru import logger
-from src.config import conf_service, config_notify_db, settings
+from src.config import conf_service, config_notify_db, settings, config_auth
 from src.connector.postgres import PostgresConnector
 from src.models.models import ContentSummary, Movie, TemplateModel, UGCSummary
 
 
 async def fetch_ugc_summary(user_id: str, since: datetime) -> UGCSummary:
     since_formatted = since.isoformat()
-    url = f"http://mock-api/ugc/v1/summary?user_id={user_id}&since={since_formatted}"
+    url = f"{config_auth.api_url}/ugc/v1/summary?user_id={user_id}&since={since_formatted}"
     headers = {
         'Cookie': f'access_token={conf_service.token}; HttpOnly; Path=/',
         "X-Request-Id": settings.mock_x_request_id
@@ -25,7 +25,7 @@ async def fetch_ugc_summary(user_id: str, since: datetime) -> UGCSummary:
 
 
 async def fetch_content_summary(user_id: str) -> ContentSummary:
-    url = f"http://mock-api/content/v1/summary?user_id={user_id}"
+    url = f"{config_auth.api_url}/content/v1/summary?user_id={user_id}"
     headers = {
         'Cookie': f'access_token={conf_service.token}; HttpOnly; Path=/',
         "X-Request-Id": settings.mock_x_request_id
