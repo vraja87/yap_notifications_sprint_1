@@ -25,7 +25,7 @@ class RedisCache(Redis, Cache):
         return objects_data
 
 
-cache = RedisCache
+cache: RedisCache = None
 
 
 async def get_cache() -> RedisCache:

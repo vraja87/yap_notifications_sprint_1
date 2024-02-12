@@ -37,7 +37,7 @@ async def send_messages(
     # if there is no cache present
     if (not update_time or datetime.now() - update_time > timedelta(days=1)
             or not messages):
-        async with httpx.AsyncClient(base_url="http://mock-api:8000") as client:
+        async with httpx.AsyncClient(base_url=settings.auth_api_url) as client:
             headers = {
                 "Cookie": f'''access_token={
                     os.environ.get('SERVICE_TOKEN')}; HttpOnly; Path=/''',
@@ -58,7 +58,6 @@ async def send_messages(
                     f"{cache_key}_update_time",
                     orjson.dumps({"time": datetime.now().strftime("%m/%d/%Y, %H:%M:%S")}),
                     60*60*24)
-    print(cache_key)
     for worker in data.worker_names:
         for i in messages:
             await queue_producer.publish(
