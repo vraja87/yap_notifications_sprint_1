@@ -1,4 +1,5 @@
 from datetime import datetime
+from http import HTTPStatus
 
 import aiohttp
 from loguru import logger
@@ -16,7 +17,7 @@ async def fetch_ugc_summary(user_id: str, since: datetime) -> UGCSummary:
     }
     async with aiohttp.ClientSession() as session:
         async with session.get(url, headers=headers) as response:
-            if response.status == 200:
+            if response.status == HTTPStatus.OK:
                 response_likes = await response.json()
                 return await UGCSummary(**response_likes)
             else:
@@ -31,7 +32,7 @@ async def fetch_content_summary(user_id: str) -> ContentSummary:
     }
     async with aiohttp.ClientSession() as session:
         async with session.get(url, headers=headers) as response:
-            if response.status == 200:
+            if response.status == HTTPStatus.OK:
                 response_content = await response.json()
                 return ContentSummary(movies=[Movie(**movie) for movie in response_content])
             else:

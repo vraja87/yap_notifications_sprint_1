@@ -1,11 +1,11 @@
 import json
 import uuid
+from http import HTTPStatus
 from typing import List
 
-from loguru import logger
 import httpx
-
 from config import notify_api
+from loguru import logger
 
 
 class NotifyAPIClient:
@@ -41,7 +41,7 @@ class NotifyAPIClient:
             logger.error(self.notify)
             response = await client.post(self.notify, json=data)
 
-        if response.status_code == 200:
+        if response.status_code == HTTPStatus.OK:
             logger.info("Data sent successfully!")
         else:
             logger.info(f"Failed to send data. Status Code: {response.status_code}, Response: {response.text}")
