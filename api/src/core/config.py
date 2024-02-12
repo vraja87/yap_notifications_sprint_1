@@ -1,10 +1,4 @@
-import os
-from pathlib import Path
-
 from pydantic import BaseSettings, Field
-
-env_path = Path("..") / ".env"
-env_file = env_path
 
 
 class Settings(BaseSettings):
